@@ -1,8 +1,18 @@
+import { db } from '../db';
+import { userTimePreferencesTable } from '../db/schema';
+import { eq } from 'drizzle-orm';
 import { type UserTimePreference } from '../schema';
 
 export const getUserTimePreferences = async (userId: number): Promise<UserTimePreference[]> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching all time preferences for a specific user.
-    // Should return all time preference records for the given user ID.
-    return Promise.resolve([]);
+  try {
+    const results = await db.select()
+      .from(userTimePreferencesTable)
+      .where(eq(userTimePreferencesTable.user_id, userId))
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Failed to get user time preferences:', error);
+    throw error;
+  }
 };

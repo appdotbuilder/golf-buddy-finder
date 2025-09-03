@@ -1,9 +1,25 @@
+import { db } from '../db';
+import { conversationsTable } from '../db/schema';
 import { type GetConversationsInput, type Conversation } from '../schema';
+import { eq, or, desc } from 'drizzle-orm';
 
 export const getConversations = async (input: GetConversationsInput): Promise<Conversation[]> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching all conversations for a specific user.
-    // Should return conversations where the user is either user1 or user2.
-    // Should include related user information and latest message for each conversation.
-    return Promise.resolve([]);
+  try {
+    // Query conversations where the user is either user1 or user2
+    const result = await db.select()
+      .from(conversationsTable)
+      .where(
+        or(
+          eq(conversationsTable.user1_id, input.user_id),
+          eq(conversationsTable.user2_id, input.user_id)
+        )
+      )
+      .orderBy(desc(conversationsTable.updated_at))
+      .execute();
+
+    return result;
+  } catch (error) {
+    console.error('Get conversations failed:', error);
+    throw error;
+  }
 };

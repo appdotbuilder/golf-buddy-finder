@@ -1,20 +1,38 @@
+import { db } from '../db';
+import { usersTable } from '../db/schema';
 import { type UpdateUserInput, type User } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const updateUser = async (input: UpdateUserInput): Promise<User> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is updating an existing user profile with new information.
-    // Should validate the input and update only the provided fields, updating updated_at timestamp.
-    return Promise.resolve({
-        id: input.id,
-        email: input.email || 'placeholder@example.com',
-        username: input.username || 'placeholder',
-        full_name: input.full_name || 'Placeholder Name',
-        skill_level: input.skill_level || 'beginner',
-        handicap: input.handicap !== undefined ? input.handicap : null,
-        location: input.location || 'Placeholder Location',
-        bio: input.bio !== undefined ? input.bio : null,
-        home_course: input.home_course !== undefined ? input.home_course : null,
-        created_at: new Date(),
-        updated_at: new Date()
-    } as User);
+  try {
+    // Build update object with only provided fields
+    const updateData: any = {
+      updated_at: new Date()
+    };
+
+    if (input.email !== undefined) updateData.email = input.email;
+    if (input.username !== undefined) updateData.username = input.username;
+    if (input.full_name !== undefined) updateData.full_name = input.full_name;
+    if (input.skill_level !== undefined) updateData.skill_level = input.skill_level;
+    if (input.handicap !== undefined) updateData.handicap = input.handicap;
+    if (input.location !== undefined) updateData.location = input.location;
+    if (input.bio !== undefined) updateData.bio = input.bio;
+    if (input.home_course !== undefined) updateData.home_course = input.home_course;
+
+    // Update user record
+    const result = await db.update(usersTable)
+      .set(updateData)
+      .where(eq(usersTable.id, input.id))
+      .returning()
+      .execute();
+
+    if (result.length === 0) {
+      throw new Error(`User with id ${input.id} not found`);
+    }
+
+    return result[0];
+  } catch (error) {
+    console.error('User update failed:', error);
+    throw error;
+  }
 };
